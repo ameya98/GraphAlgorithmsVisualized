@@ -120,17 +120,27 @@ function startanimation()
             .attr("cx", point.x)
             .attr("cy", point.y)
             .attr("r", 0)
+            .transition()
+             .attr("r", 2);
+
+        svg.append("circle")
+            .attr("id", "transcircle" + (points.length).toString())
+            .attr("cx", point.x)
+            .attr("cy", point.y)
+            .attr("r", 10)
+            .attr("fill-opacity", "0")
             .on("mouseover", function(){
-                d3.select(this).attr("r", 4);
+                console.log(this.id);
+                d3.select(this.id.replace("transcircle", "#point")).attr("r", 4);
             })
             .on("mouseout", function(){
-                d3.select(this).attr("r", 2);
+                d3.select(this.id.replace("transcircle", "#point")).attr("r", 2);
             })
             .on("click", function(){
                 if(points.length == pointcount && !growtree)
                 {
                     growtree = true;
-                    startindex = parseInt(d3.select(this).attr("id").replace("point", ""), 10);
+                    startindex = parseInt(d3.select(this).attr("id").replace("transcircle", ""), 10);
 
                     console.log(startindex);
 
@@ -162,9 +172,7 @@ function startanimation()
                         }
                     }
                 }
-            })
-          .transition()
-            .attr("r", 2);
+            });
 
         svg.append("svg:text")
             .text("Inf")
