@@ -127,12 +127,12 @@ function startanimation()
                 d3.select(this).attr("r", 2);
             })
             .on("click", function(){
-                startindex = parseInt(d3.select(this).attr("id").replace("point", ""), 10);
-                console.log(startindex);
-
-                if(points.length == pointcount)
+                if(points.length == pointcount && !growtree)
                 {
                     growtree = true;
+                    startindex = parseInt(d3.select(this).attr("id").replace("point", ""), 10);
+
+                    console.log(startindex);
 
                     // start growing the tree when clicked
                     findMST();
@@ -143,7 +143,7 @@ function startanimation()
                      .style("fill-opacity", "0")
                      .duration("500");
 
-                    // show the button now 
+                    // show the button now
                     d3.select("#pausebutton")
                     .style("visibility", "visible")
                     .transition()
