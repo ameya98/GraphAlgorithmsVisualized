@@ -26,39 +26,39 @@ svg.append("svg:text")
 svg.append("svg:text")
 .text("Prim's Algorithm:")
 .attr("class", "description")
-.attr("x", "24%")
+.attr("x", "22%")
 .attr("y", "52%")
 .style("fill", "black");
 
 svg.append("svg:text")
 .text("1. For all points, initialize distance (representing the shortest distance from the current tree) as 'Infinity'.")
 .attr("class", "description")
-.attr("x", "24%")
-.attr("y", "54.5%");
+.attr("x", "22%")
+.attr("y", "55%");
 
 svg.append("svg:text")
 .text("2. Select one point arbitrarily, and set its distance as 0.")
 .attr("class", "description")
-.attr("x", "24%")
-.attr("y", "57%");
+.attr("x", "22%")
+.attr("y", "58%");
 
 svg.append("svg:text")
 .text("3. Repeat until all vertices in tree:")
 .attr("class", "description")
-.attr("x", "24%")
-.attr("y", "59.5%");
+.attr("x", "22%")
+.attr("y", "61%");
 
 svg.append("svg:text")
 .text("Find point with least distance from tree, and add it to the tree.")
 .attr("class", "description")
-.attr("x", "26%")
-.attr("y", "62%");
+.attr("x", "24%")
+.attr("y", "64%");
 
 svg.append("svg:text")
 .text("For this added point, update distance for all neighbours, if shorter.")
 .attr("class", "description")
-.attr("x", "26%")
-.attr("y", "64.5%");
+.attr("x", "24%")
+.attr("y", "67%");
 
 svg.append("svg:text")
 .text("Click to begin!")
@@ -321,6 +321,7 @@ function clearscreen(){
 
             d3.select(".heading")
             .text("Minimal Spanning Tree Built")
+            .attr("y", "4%")
             .transition()
                 .style("fill-opacity", "1")
                 .duration("500")
