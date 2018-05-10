@@ -319,9 +319,16 @@ function clearscreen(){
                 .append("feGaussianBlur")
                 .attr("stdDeviation", 5);
 
+            // show the button now
+            d3.select("#pausebutton")
+            .style("visibility", "hidden")
+            .transition()
+             .style("opacity", "0")
+             .duration(1000);
+
             d3.select(".heading")
             .text("Minimal Spanning Tree Built")
-            .attr("y", "4%")
+            .attr("y", "5%")
             .transition()
                 .style("fill-opacity", "1")
                 .duration("500")
