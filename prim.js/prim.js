@@ -21,7 +21,7 @@ svg.append("svg:text")
 .attr("class", "description")
 .attr("x", "50%")
 .attr("y", "45%")
-.attr("text-anchor", "middle");
+.style("text-anchor", "middle");
 
 svg.append("svg:text")
 .text("Prim's Algorithm:")
