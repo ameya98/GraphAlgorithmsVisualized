@@ -339,6 +339,14 @@ function clearscreen(){
                     .remove();
                 }, 1100);
 
+                // show prompt to click on a point
+                d3.select(".subheading")
+                .text("Click on any point to initialize the tree.")
+                .attr("y", "3%")
+                .transition()
+                 .style("fill-opacity", "1")
+                 .duration("500");
+
                 growtree = false;
 
             })
