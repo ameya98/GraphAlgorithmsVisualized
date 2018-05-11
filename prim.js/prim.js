@@ -115,6 +115,7 @@ function startanimation()
         let point = {x: 30 + (Math.random() * (width - 60)),
                      y: 30 + (Math.random() * (height - 60))};
 
+        // the actual black circles
         svg.append("circle")
             .attr("id", "point" + (points.length).toString())
             .attr("cx", point.x)
@@ -123,6 +124,7 @@ function startanimation()
             .transition()
              .attr("r", 2);
 
+        // transparent circles on top
         svg.append("circle")
             .attr("id", "transcircle" + (points.length).toString())
             .attr("cx", point.x)
@@ -155,10 +157,11 @@ function startanimation()
 
                     // show the button now
                     d3.select("#pausebutton")
+                    .text("Pause")
                     .style("visibility", "visible")
                     .transition()
                      .style("opacity", "1")
-                     .duration(1000);
+                     .duration("1000");
 
                     // fade distances in
                     for(let i = 0; i < points.length; ++i)
@@ -321,18 +324,27 @@ function findMST(){
 function clearscreen(){
     d3.timeout(function(){
 
-            svg.append("defs")
-                .append("filter")
-                .attr("id", "blur")
-                .append("feGaussianBlur")
-                .attr("stdDeviation", 5);
-
             // show the button now
             d3.select("#pausebutton")
-            .style("visibility", "hidden")
+            .attr("float", "initial")
+            .attr("position", "relative")
+            .on("click", function restart(){
+                d3.selectAll("line")
+                .transition()
+                 .style("stroke-opacity", "0")
+                 .duration("1000");
+
+                d3.timeout(function removeedges(){
+                    d3.selectAll("line")
+                    .remove();
+                }, 1100);
+
+                growtree = false;
+
+            })
             .transition()
-             .style("opacity", "0")
-             .duration(1000);
+             .text("Restart")
+             .duration("1000");
 
             d3.select(".heading")
             .text("Minimal Spanning Tree Built")
