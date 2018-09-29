@@ -11,7 +11,7 @@ svg.append("svg:text")
 .text("The Delauney Triangulation")
 .attr("class", "heading")
 .attr("x", "50%")
-.attr("y", "40%")
+.attr("y", "30%")
 .attr("text-anchor", "middle")
 .attr("fill", "black");
 
@@ -20,39 +20,39 @@ svg.append("svg:text")
 .text("Compute a triangulation of points such that any of the points is not inside the circumcircle of any triangle of the triangulation.")
 .attr("class", "description")
 .attr("x", "50%")
-.attr("y", "45%")
+.attr("y", "35%")
 .style("text-anchor", "middle");
 
 svg.append("svg:text")
 .text("Algorithm:")
 .attr("class", "description")
 .attr("x", "22%")
-.attr("y", "52%")
+.attr("y", "42%")
 .style("fill", "black");
 
 svg.append("svg:text")
 .text("1. Add points one by one. Points in gray have not been added yet.")
 .attr("class", "description")
 .attr("x", "22%")
-.attr("y", "55%");
+.attr("y", "45%");
 
 svg.append("svg:text")
 .text("2. Find the triangle that contains the new point, and join the vertices of this triangle and the point.")
 .attr("class", "description")
 .attr("x", "22%")
-.attr("y", "58%");
+.attr("y", "48%");
 
 svg.append("svg:text")
 .text("3. Perform Lawson flips to restore the Delauney Triangulation with the new point.")
 .attr("class", "description")
 .attr("x", "22%")
-.attr("y", "61%");
+.attr("y", "51%");
 
 svg.append("svg:text")
 .text("Click anywhere to begin!")
 .attr("class", "subheading")
 .attr("x", "50%")
-.attr("y", "75%")
+.attr("y", "65%")
 .attr("text-anchor", "middle")
 .style("fill", "black");
 
@@ -255,7 +255,7 @@ function lawson_flip(triangle1, triangle2){
     {
         for(let j = 1; j <= 3, count < 2; ++j)
         {
-            if(triangle1[i].x == triangle2[j].x and triangle1[i].y == triangle2[j].y)
+            if(triangle1[i].x == triangle2[j].x && triangle1[i].y == triangle2[j].y)
             {
                 commonvertices.push([i, j]);
                 count += 1;
