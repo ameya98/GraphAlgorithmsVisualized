@@ -62,6 +62,13 @@ pointcount = 4;
 started = false;
 inprogress = false;
 startindex = 0;
+delayindex = 0;
+
+// store the triangles and edges as a list
+triangles = [];
+edges = [];
+
+history_graph = {};
 
 // start loading points once clicked
 d3.select("body")
@@ -101,7 +108,8 @@ function startanimation()
     // add points one-by-one
     timer = d3.timer(function() {
         let point = {x: 200 + (Math.random() * (width/3 - 400)),
-                     y: 200 + (Math.random() * (2*height/3 - 400))};
+                     y: 200 + (Math.random() * (2*height/3 - 400)),
+                     id: "point" + (points.length).toString()};
 
         // the actual black circles
         svg.append("circle")
@@ -150,18 +158,6 @@ function startanimation()
                     .transition()
                      .style("opacity", "1")
                      .duration("1000");
-
-                    // fade distances in
-                    // for(let i = 0; i < points.length; ++i)
-                    // {
-                    //     if(i != startindex)
-                    //     {
-                    //         d3.select("#distance" + i.toString())
-                    //         .transition()
-                    //         .attr("fill-opacity", "0.8")
-                    //         .duration("1000");
-                    //     }
-                    // }
                 }
             });
 
@@ -190,17 +186,7 @@ function build_triangle(point1, point2, point3){
 function draw_triangle(triangle){
     for(let i = 1; i <= 3; ++i)
     {
-        svg.append("line")
-           .style("stroke", "black")
-           .attr("x1", triangle[i].x)
-           .attr("y1", triangle[i].y)
-           .attr("x2", triangle[i].x)
-           .attr("y2", triangle[i].y)
-           .transition()
-               .attr("x2", triangle[1 + (i % 3)].x)
-               .attr("y2", triangle[1 + (i % 3)].y)
-               .delay(100*i)
-               .duration(400);
+        draw_edge(triangle[i], triangle[1 + (i % 3)]);
     }
 }
 
@@ -219,8 +205,38 @@ function in_triangle(point, triangle){
     return ((b1 == b2) && (b2 == b3));
 }
 
+// draw an edge between point1 and point2 on the svg
+function draw_edge(point1, point2){
+
+    // edges.push([min(point1.id, point2.id), max(point1.id, point2.id)]);
+    svg.append("line")
+       .style("stroke", "black")
+       .attr("id", "edge" + toString(point1.id) + toString(point2.id))
+       .attr("x1", point1.x)
+       .attr("y1", point1.y)
+       .attr("x2", point1.x)
+       .attr("y2", point1.y)
+       .transition()
+           .attr("x2", point2.x)
+           .attr("y2", point2.y)
+           .duration(400);
+
+    delayindex += 1;
+}
+
+// finds the triangulation triangle containing the point
+function find_triangle_containing(point){
+    for(let j = 0; j < triangles.length; ++j)
+    {
+        if(in_triangle(point, triangles[j]))
+        {
+            return j;
+        }
+    }
+}
+
 // join this point inside this triangle to the vertices
-function join_points(point, triangle){
+function join_to_vertices(point, triangle){
 
     new_triangles = [];
 
@@ -230,62 +246,64 @@ function join_points(point, triangle){
 
     for(let i = 1; i <= 3; ++i)
     {
-        svg.append("line")
-           .style("stroke", "black")
-           .attr("x1", point.x)
-           .attr("y1", point.y)
-           .attr("x2", point.x)
-           .attr("y2", point.y)
-           .transition()
-               .attr("x2", triangle[i].x)
-               .attr("y2", triangle[i].y)
-               .delay(100*i)
-               .duration(400);
+        draw_edge(point, triangle[i])
     }
 
     return new_triangles;
 }
 
-function lawson_flip(triangle1, triangle2){
+// check if this edge is 'bad' and should be flipped (in the Lawson sense)
+// i and j are the ids of the triangles sharing this common edge
+function is_bad_edge(i, j){
+    return true;
+}
+
+// flip across triangles[i], and triangles[j]
+function lawson_flip(i, j){
 
     // find the common edge
-    commonvertices = [];
-    count = 0;
-    for(let i = 1; i <= 3, count < 2; ++i)
+    let commonvertices = [];
+    let count = 0;
+    for(let i1 = 1; i1 <= 3, count < 2; ++i1)
     {
-        for(let j = 1; j <= 3, count < 2; ++j)
+        for(let j1 = 1; j1 <= 3, count < 2; ++j1)
         {
-            if(triangle1[i].x == triangle2[j].x && triangle1[i].y == triangle2[j].y)
+            if(triangles[i][i1].x == triangles[j][j1].x && triangles[i][i1].y == triangles[j][j1].y)
             {
-                commonvertices.push([i, j]);
+                commonvertices.push([i1, j1]);
                 count += 1;
             }
         }
     }
 
     // find the non-common vertices
-    othervertex1 = 6 - (commonvertices[0][0] + commonvertices[1][0]);
-    othervertex2 = 6 - (commonvertices[0][1] + commonvertices[1][1]);
+    let othervertex1 = 6 - (commonvertices[0][0] + commonvertices[1][0]);
+    let othervertex2 = 6 - (commonvertices[0][1] + commonvertices[1][1]);
+
+    // remove old edge
+    d3.select("edge" + toString(triangles[i][commonvertices[0][0]].id) + toString(triangles[i][commonvertices[1][0]].id)).remove();
+
+    // destroy old triangles and replace them by new ones
+    triangles[i] = build_triangle(triangles[i][othervertex1], triangles[j][othervertex2], triangles[i][commonvertices[0][0]]);
+    triangles[j] = build_triangle(triangles[i][othervertex1], triangles[j][othervertex2], triangles[i][commonvertices[1][0]]);
+
+    // draw the edges on the svg element
+    draw_edge(othervertex1, othervertex2);
 
 }
 
 // finds the Delauney Triangulation of points given in the array points[]
 function findDT(){
 
-    // store the triangles as a list
-    triangles = []
-
     // create three phantom points containing all other points
-    phantompoint = []
-    phantompoint.push({x: 40, y: 50});
-    phantompoint.push({x: 40, y: height - 50});
-    phantompoint.push({x: 2*width/3, y: height/2});
+    let phantompoint = [];
+    phantompoint.push({x: 40, y: 50, id: "phantompoint1"});
+    phantompoint.push({x: 40, y: height - 50, id: "phantompoint2"});
+    phantompoint.push({x: 2*width/3, y: height/2, id: "phantompoint3"});
 
     // phantom points are red - remove this later.
     for(let i = 0; i < 3; ++i)
     {
-        console.log(phantompoint[i]);
-
         svg.append("circle")
              .attr("id", "phantompoint" + (points.length).toString())
              .attr("cx", phantompoint[i].x)
@@ -299,7 +317,7 @@ function findDT(){
     }
 
     // start with the phantom points for the first triangle
-    curr_triangle = build_triangle(phantompoint[0], phantompoint[1], phantompoint[2]);
+    let curr_triangle = build_triangle(phantompoint[0], phantompoint[1], phantompoint[2]);
     draw_triangle(curr_triangle);
     triangles.push(curr_triangle);
 
@@ -322,103 +340,43 @@ function findDT(){
         }
     });
 
-    // actual Prim's algorithm
+    // iterative Delauney triangulation
     let curr_index = 0;
+    let bad_edges = [];
     function addnextpoint()
     {
+        edgetimer.stop();
+        stopped = true;
+
         // find triangle containing the next point
-        for(let j = 0; j < triangles.length; ++j)
+        let triangle_index = find_triangle_containing(points[curr_index]);
+
+        // join vertices
+        new_triangles = join_to_vertices(points[curr_index], triangles[triangle_index]);
+
+        // add the new triangles - overwrite this current triangle too!
+        triangles[triangle_index] = new_triangles[0];
+        triangles.push(new_triangles[1]);
+        triangles.push(new_triangles[2]);
+
+        // get adjacent triangles
+        if(is_bad_edge(triangle_index, neighbour_index))
         {
-            if(in_triangle(points[curr_index], triangles[j]))
-            {
-                console.log(curr_index, triangles[j]);
-
-                // join vertices
-                new_triangles = join_points(points[curr_index], triangles[j]);
-
-                // add the new triangles - overwrite this current triangle too!
-                triangles[j] = new_triangles[0];
-                triangles.push(new_triangles[1]);
-                triangles.push(new_triangles[2]);
-
-                // perform Lawson flips
-
-
-                // next point in points[]
-                curr_index += 1;
-
-
-            }
+            bad_edges.push()
         }
 
-        if(current_tree.length == pointcount)
+        while(bad_edges.length > 0)
         {
-            edgetimer.stop();
-            console.log("MST complete");
-            clearscreen();
+            lawson_flip(bad_edges[0]);
         }
+        // next point in points[]
+        curr_index += 1;
 
-        // find point with closest distance
-        mindist = Infinity;
-        for(let i = 0; i < points.length; ++i)
-        {
-            if(!in_tree[i])
-            {
-                if(mindist > distance[i])
-                {
-                    mindist = distance[i];
-                    mindistpoint = i;
-                }
-            }
-        }
-
-        // add closest point and the edge to its parent
-        console.log("point" + mindistpoint.toString() + " added to MST");
-        in_tree[mindistpoint] = true;
-        current_tree.push(points[mindistpoint]);
-
-        d3.select("#point" + mindistpoint.toString())
-          .attr("r", 3)
-          .style("fill", "gray");
-
-        d3.select("#distance" + mindistpoint.toString())
-          .transition()
-           .attr("fill-opacity", "0")
-           .duration("500");
-
-        if(parent[mindistpoint] != null)
-        {
-            svg.append("line")
-               .style("stroke", "red")
-               .attr("x1", points[parent[mindistpoint]].x)
-               .attr("y1", points[parent[mindistpoint]].y)
-               .attr("x2", points[parent[mindistpoint]].x)
-               .attr("y2", points[parent[mindistpoint]].y)
-               .transition()
-                   .attr("x2", points[mindistpoint].x)
-                   .attr("y2", points[mindistpoint].y)
-               .transition()
-                   .style("stroke", "gray");
-            }
-
-        // update distances to neighbours - here, all other points
-        for(let i = 0; i < points.length; ++i)
-        {
-            if(!in_tree[i])
-            {
-                newdistance = Math.sqrt(Math.pow(points[i].x - points[mindistpoint].x, 2) + Math.pow(points[i].y - points[mindistpoint].y, 2));
-                if(distance[i] > newdistance)
-                {
-                    distance[i] = newdistance;
-                    parent[i] = mindistpoint;
-
-                    d3.select("#distance" + i.toString())
-                      .transition()
-                       .text(Math.round(distance[i]))
-                       .duration("300");
-                }
-            }
-        }
+        d3.select("body")
+        .on("click", function(){
+            edgetimer = d3.interval(addnextpoint, 1000);
+            stopped = false;
+        });
     }
 }
 
