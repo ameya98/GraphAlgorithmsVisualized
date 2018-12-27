@@ -8,6 +8,7 @@ Reference: Incremental Delaunay Triangulation - Dani Lischinski
 
 import { vertex, edge, quadedge } from "./quadedge";
 import * as geom from "./geom";
+import * as d3 from "../d3";
 
 class subdivision {
     private last_id: number;
@@ -109,7 +110,7 @@ class subdivision {
         delete e.associated_quadedge;
     }
 
-    // List all edges.
+    // List all edges in the console.
     list_edges() {
         console.log("Edges:");
         for (let curr_id in this.quadedges){
@@ -122,12 +123,11 @@ class subdivision {
 }
 
 export class triangulation extends subdivision {
-
     // Returns an edge e such that vertex a is on edge e, or e is an edge of a triangle containing a.
     locate(a: vertex): edge {
         let e = this.starting_edge;
         while (true) {   
-            if(a == e.get_origin() || a == e.get_dest()) {
+            if(geom.on_edge(a, e)) {
                 return e;
             }
             if (geom.right_of(a, e)) {
@@ -149,14 +149,26 @@ export class triangulation extends subdivision {
     insert_point(a: vertex) {
         let e = this.locate(a);
         
+        console.log("sup");
+        
         // Point already on the edge or on endpoints?
-        if (a == e.get_origin() || a == e.get_dest()) {
+        let tol = 0.01;
+        let origin = e.get_origin();
+        let dest = e.get_dest();
+        let l1 = Math.sqrt((a.x - origin.x) * (a.x - origin.x) + (a.y - origin.y) * (a.y - origin.y));
+        let l2 = Math.sqrt((a.x - dest.x) * (a.x - dest.x) + (a.y - dest.y) * (a.y - dest.y));
+
+        if (l1 < tol || l2 < tol) {
+            console.log("too close!");
             return;
         }
         else if(geom.on_edge(a, e)) {
+            console.log("on edge!");
             e = e.origin_prev();
             this.delete_edge(e.origin_next());
         }
+
+        console.log("all good!");
 
         // Connect new point to the other vertices
         let base = this.make_edge();

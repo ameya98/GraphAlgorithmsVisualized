@@ -36,9 +36,9 @@ export function left_of(a: vertex, e: edge): boolean {
     return in_ccw_order(a, e.get_origin(), e.get_dest());
 }
 
-// Checks whether vertex a is on the edge e, upto a tolerance of 0.0001.
+// Checks whether vertex a is on the edge e, upto a tolerance of 0.01.
 export function on_edge(a: vertex, e: edge): boolean {
-    let tol = 0.0001;
+    let tol = 0.01;
     let origin = e.get_origin();
     let dest = e.get_dest();
 

@@ -6,14 +6,10 @@ Reference: Incremental Delaunay Triangulation - Dani Lischinski
 (https://dl.acm.org/citation.cfm?id=180900)
 */
 
-/* 
-The 'import' statements below have been commented out because the corresponding .js files have been loaded in at global scope, ie, in 'index.html'.
 
-    import * as d3 from "./d3";
-    import * from "./delauney";
-    import * from "./quadedge";
-*/
-
+import * as d3 from "./d3";
+import * as delauney from "./src/delauney";
+import * as quadedge from "./src/quadedge";
 
 // Dynamic resize for width and height
 let width = d3.select("#svgdiv").node().getBoundingClientRect().width;
@@ -76,11 +72,14 @@ svg.append("svg:text")
 
 let phantom1 = new quadedge.vertex(width + height, 0);
 let phantom2 = new quadedge.vertex(0, width + height);
-let phantom3 = new quadedge.vertex(width, height);
+let phantom3 = new quadedge.vertex(0, 0);
 
-let dt = new triangulation(phantom1, phantom2, phantom3);
+let dt = new delauney.triangulation(phantom1, phantom2, phantom3);
 
 let animation_started = false;
+let insertion_finished = true;
+let vertices = [];
+
 d3.select("body")
     .on('click', function () {
         if (animation_started == false) {            
@@ -111,11 +110,50 @@ d3.select("body")
 
         }
         else {
+            if(!insertion_finished) return;
+
             let coordinates = d3.mouse(this);
             let new_vertex = new quadedge.vertex(coordinates[0], coordinates[1]);
 
-            dt.insert_point(new_vertex);
-            dt.list_edges();
+            // Add new point to SVG.
+            svg.append("circle")
+                .attr("cx", new_vertex.x)
+                .attr("cy", new_vertex.y)
+                .attr("r", 3);
+
+            console.log(coordinates);
+            
+            // Insert into triangulation.
+            insertion_finished = false;
+            dt.insert_point(new_vertex);  
+            insertion_finished = true;
+
+            console.log("insertion finished");
+            
+            // Remove all old lines.
+            d3.selectAll(".edge").remove();
+
+            // Draw edges with d3.
+            for (let curr_id in dt.quadedges) {
+                let curr_quadedge = dt.quadedges[curr_id];
+                let p1 = curr_quadedge.edges[0].get_origin();
+                let p2 = curr_quadedge.edges[0].get_dest();
+
+                if ((p1 != phantom1 && p1 != phantom2 && p1 != phantom3) && (p2 != phantom1 && p2 != phantom2 && p2 != phantom3)){
+                    svg.append("line")
+                        .style("stroke", "black")
+                        .attr("class", "edge")
+                        .attr("x1", p1.x)
+                        .attr("y1", p1.y)
+                        .attr("x2", p2.x)
+                        .attr("y2", p2.y);
+                        // .transition()
+                        //     .attr("x2", p2.x)
+                        //     .attr("y2", p2.y)
+                        //     .duration(2000);
+                }
+                
+            }
 
         }
     });

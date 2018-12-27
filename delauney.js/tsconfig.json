@@ -1,9 +1,0 @@
-{
-    "compilerOptions": {
-        "target": "ES6",
-        "module": "none",
-        "out": "delauney_d3.js",
-        "removeComments": true,
-        "sourceMap": false
-    }
-}

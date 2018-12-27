@@ -1,5 +1,5 @@
-import { triangulation } from "./delauney";
-import { vertex } from "./quadedge";
+import { triangulation } from "../src/delauney";
+import { vertex } from "../src/quadedge";
 
 let a = new vertex(-10000, 0);
 let b = new vertex(10000, 0);
