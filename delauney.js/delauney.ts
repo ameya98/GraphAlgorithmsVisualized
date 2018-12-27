@@ -3,13 +3,13 @@ import * as geom from "./geom";
 
 class subdivision {
     private last_id: number;
-
-    quadedges: quadedge[];
+    quadedges: {};
     starting_edge: edge;
 
     // Initialize a subdivision of the plane with a triangle with vertices a, b, and c.
     constructor(a: vertex, b: vertex, c: vertex){
         this.last_id = -1;
+        this.quadedges = {};
 
         let ab = this.make_edge();
         let bc = this.make_edge();
@@ -42,7 +42,12 @@ class subdivision {
     make_edge(): edge {
         let new_quadedge = new quadedge();
         new_quadedge.id = this.get_new_quadedge_id();
-        this.quadedges.push(new_quadedge);
+
+        for (let i = 0; i < 4; i++) {
+            new_quadedge.edges[i].associated_quadedge = new_quadedge;
+        }
+
+        this.quadedges[new_quadedge.id] = new_quadedge;
 
         return new_quadedge.edges[0];
     }
@@ -71,7 +76,7 @@ class subdivision {
         e.set_endpoints(e1.get_dest(), e2.get_dest());
     }
 
-    // Join or split edges, according to whether the two edgerings around the origin of the two edges are the same.
+    // Join or split edges, according to whether the two edgerings around the origins of the two edges are the same.
     splice(e1: edge, e2: edge) {
         let alpha = e1.origin_next().rot();
         let beta  = e2.origin_next().rot();
@@ -92,6 +97,89 @@ class subdivision {
         this.splice(e, e.origin_prev());
         this.splice(e.sym(), e.sym().origin_prev());
         
+        delete this.quadedges[e.associated_quadedge.id];
         delete e.associated_quadedge;
+    }
+
+    // List all edges.
+    list_edges() {
+        console.log("Edges:");
+        for (let curr_id in this.quadedges){
+            let curr_quadedge = this.quadedges[curr_id];
+            console.log(curr_quadedge.edges[0].get_origin(), curr_quadedge.edges[0].get_dest());
+        }
+        console.log();
+    }
+
+}
+
+export class triangulation extends subdivision {
+
+    // Returns an edge e such that vertex a is on edge e, or e is an edge of a triangle containing a.
+    locate(a: vertex): edge {
+        let e = this.starting_edge;
+        while (true) {   
+            if(a == e.get_origin() || a == e.get_dest()) {
+                return e;
+            }
+            if (geom.right_of(a, e)) {
+                e = e.sym();
+            }
+            else if (!geom.right_of(a, e.origin_next())) {
+                e = e.origin_next();
+            }
+            else if (!geom.right_of(a, e.dest_prev())) {
+                e = e.dest_prev();
+            }
+            else {
+                return e;
+            }
+        }
+    }
+
+    // Inserts vertex a into the Delauney triangulation, such that it remains a Delauney triangulation after the insertion as well.
+    insert_point(a: vertex) {
+        let e = this.locate(a);
+        
+        // Point already on the edge or on endpoints?
+        if (a == e.get_origin() || a == e.get_dest()) {
+            return;
+        }
+        else if(geom.on_edge(a, e)) {
+            e = e.origin_prev();
+            this.delete_edge(e.origin_next());
+        }
+
+        // Connect new point to the other vertices
+        let base = this.make_edge();
+        base.set_endpoints(e.get_origin(), a);
+
+        this.splice(base, e);
+        this.starting_edge = base;
+
+        while(true) {
+            base = this.connect(e, base.sym());
+            e = base.origin_prev();
+
+            if(e.lface_next() == this.starting_edge) {
+                break;
+            }
+        }
+
+        // Ensure that the Delauney Condition is not violated by swapping if required.
+        while (true) {
+            let prev_edge = e.origin_prev();
+            if(geom.right_of(prev_edge.get_dest(), e) && geom.in_circle(a, e.get_origin(), prev_edge.get_dest(), e.get_dest())) {
+                this.swap(e);
+                e = e.origin_prev();
+            }
+            else if(e.origin_next() == this.starting_edge) {
+                return;
+            }
+            else {
+                e = e.origin_next().lface_prev();
+            }
+        }
+
     }
 }

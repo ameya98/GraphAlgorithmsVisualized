@@ -1,9 +1,14 @@
-// Vertex interface.
-export interface vertex {
+// Vertex class.
+export class vertex {
     id: number;
     x: number;
     y: number;
     data: string;
+
+    constructor(x: number, y:number) {
+        this.x = x;
+        this.y = y;
+    }
 }
 
 // Edge class.
@@ -99,12 +104,14 @@ export class quadedge {
 
     constructor(){
         // Create 4 edges (the 'quad') for this edge.
+        this.edges = [];
         for (let index = 0; index < 4; index++) {
             let new_edge = new edge();
             new_edge.quadedge_id = index;
             this.edges.push(new_edge);
         }
 
+        // Initialize pointers.
         this.edges[0].next = this.edges[0];
         this.edges[1].next = this.edges[3];
         this.edges[2].next = this.edges[2];
