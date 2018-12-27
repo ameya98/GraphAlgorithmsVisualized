@@ -117,7 +117,15 @@ define(["require", "exports", "./d3", "./src/delauney", "./src/quadedge"], funct
             // Remove old edges, no longer present
             for (var id in last_ids) {
                 if (!(id in dt.quadedges)) {
-                    d3.select("#" + "edge" + id).remove();
+                    // Transition the removal.
+                    d3.select("#" + "edge" + id)
+                        .attr("fill-opacity", 1)
+                        .attr("stroke-opacity", 1)
+                        .transition()
+                        .duration(1000)
+                        .attr("fill-opacity", 0)
+                        .attr("stroke-opacity", 0)
+                        .remove();
                     delete last_ids[id];
                     console.log("removed edge with id", id);
                 }
@@ -130,7 +138,7 @@ define(["require", "exports", "./d3", "./src/delauney", "./src/quadedge"], funct
                     var p2 = curr_quadedge.edges[0].get_dest();
                     if ((p1 != phantom1 && p1 != phantom2 && p1 != phantom3) && (p2 != phantom1 && p2 != phantom2 && p2 != phantom3)) {
                         svg.append("line")
-                            .style("stroke", "black")
+                            .style("stroke", "gray")
                             .attr("class", "edge")
                             .attr("id", "edge" + quad_id)
                             .attr("x1", p1.x)
