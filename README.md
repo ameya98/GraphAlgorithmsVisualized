@@ -5,7 +5,7 @@ Graph algorithms visualized with d3.js.
 An implementation of the Incremental Delauney Triangulation algorithm, with TypeScript.  
 Keep clicking to add points, and watch how the triangulation changes - courtesy of d3.js. 
 
-There's also a TypeScript quad-edge data-structure that I implemented. See the 'src' and 'tests' folder inside 'delauney.js' if you're interested in using this.
+There's also a quad-edge data-structure that I implemented in TypeScript. See the 'src' and 'tests' folder inside 'delauney.js' if you're interested in using this.
  
 The main reference for this was Dani Lischinski's guide and C++ code [here](http://www.karlchenofhell.org/cppswp/lischinski.pdf).  
 Theory about the extremely impressive quad-edge data-structure can be found in the original paper by Leonidas Guibas and Jorge Stolfi
