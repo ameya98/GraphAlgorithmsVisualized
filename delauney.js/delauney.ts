@@ -1,3 +1,6 @@
+import { vertex, edge, quadedge } from "./quadedge";
+import * as geom from "./geom";
+
 class subdivision {
     private last_id: number;
 

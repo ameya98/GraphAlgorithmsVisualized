@@ -1,11 +1,13 @@
-interface vertex {
+// Vertex interface.
+export interface vertex {
     id: number;
     x: number;
     y: number;
     data: string;
 }
 
-class edge {
+// Edge class.
+export class edge {
     quadedge_id: number;
     associated_quadedge: quadedge;
     origin: vertex;
@@ -90,7 +92,8 @@ class edge {
     
 }
 
-class quadedge {
+// Quadedge class.
+export class quadedge {
     id: number;
     edges: edge[];
 

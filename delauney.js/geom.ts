@@ -1,3 +1,5 @@
+import { vertex, edge } from "./quadedge";
+
 // Oriented area of triangle with vertices a, b and c.
 function triangle_area(a: vertex, b: vertex, c: vertex): number {
     return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
@@ -46,7 +48,7 @@ function on_edge(a: vertex, e: edge): boolean {
     if(l1 > l || l2 > l) {
         return false;
     }
-    
+
     if (Math.abs(l1 + l2 - l) < tol) {
         return true;
     }
