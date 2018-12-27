@@ -79,6 +79,7 @@ let dt = new delauney.triangulation(phantom1, phantom2, phantom3);
 let animation_started = false;
 let insertion_finished = true;
 let vertices = [];
+let last_ids = {};
 
 d3.select("body")
     .on('click', function () {
@@ -90,11 +91,13 @@ d3.select("body")
                 d3.select(".heading")
                     .transition()
                     .style("fill-opacity", "0")
+                    .remove()
                     .duration("500");
 
                 d3.select(".subheading")
                     .transition()
                     .style("fill-opacity", "0")
+                    .remove()
                     .duration("500");
 
                 d3.selectAll(".description")
@@ -128,31 +131,54 @@ d3.select("body")
             dt.insert_point(new_vertex);  
             insertion_finished = true;
 
-            console.log("insertion finished");
+            console.log("Insertion finished");
             
-            // Remove all old lines.
-            d3.selectAll(".edge").remove();
+            // // Show quadedge ids now.
+            // console.log("Last ids:");
+            // for (let id in last_ids) {
+            //     console.log(id);
+            // }
 
-            // Draw edges with d3.
-            for (let curr_id in dt.quadedges) {
-                let curr_quadedge = dt.quadedges[curr_id];
-                let p1 = curr_quadedge.edges[0].get_origin();
-                let p2 = curr_quadedge.edges[0].get_dest();
-
-                if ((p1 != phantom1 && p1 != phantom2 && p1 != phantom3) && (p2 != phantom1 && p2 != phantom2 && p2 != phantom3)){
-                    svg.append("line")
-                        .style("stroke", "black")
-                        .attr("class", "edge")
-                        .attr("x1", p1.x)
-                        .attr("y1", p1.y)
-                        .attr("x2", p2.x)
-                        .attr("y2", p2.y);
-                        // .transition()
-                        //     .attr("x2", p2.x)
-                        //     .attr("y2", p2.y)
-                        //     .duration(2000);
+            // console.log("Current ids:");
+            // for (let id in dt.quadedges) {
+            //     console.log(id);
+            // }
+            
+            // Remove old edges, no longer present
+            for (let id in last_ids) {
+                if(!(id in dt.quadedges)){
+                    d3.select("#" + "edge" + id).remove();
+                    delete last_ids[id];
+                    console.log("removed edge with id", id);
                 }
-                
+            }
+
+            // Draw the new edges in, with d3.
+            for (let quad_id in dt.quadedges) {
+                if(!(quad_id in last_ids)){
+                    let curr_quadedge = dt.quadedges[quad_id];
+                    let p1 = curr_quadedge.edges[0].get_origin();
+                    let p2 = curr_quadedge.edges[0].get_dest();
+
+                    if ((p1 != phantom1 && p1 != phantom2 && p1 != phantom3) && (p2 != phantom1 && p2 != phantom2 && p2 != phantom3)) {
+                        svg.append("line")
+                            .style("stroke", "black")
+                            .attr("class", "edge")
+                            .attr("id", "edge" + quad_id)
+                            .attr("x1", p1.x)
+                            .attr("y1", p1.y)
+                            .attr("x2", p1.x)
+                            .attr("y2", p1.y)
+                        .transition()
+                            .attr("x2", p2.x)
+                            .attr("y2", p2.y)
+                            .duration(2000);
+                        
+                        last_ids[quad_id] = true;
+                        console.log("added edge with id", quad_id);
+                    }
+
+                }
             }
 
         }

@@ -74,6 +74,11 @@ define(["require", "exports", "./quadedge", "./geom"], function (require, export
             this.splice(e, e1.lface_next());
             this.splice(e.sym(), e2.lface_next());
             e.set_endpoints(e1.get_dest(), e2.get_dest());
+            // Change id of this edge, because the endpoints have changed, and update records!
+            var old_id = e.associated_quadedge.id;
+            e.associated_quadedge.id = this.get_new_quadedge_id();
+            this.quadedges[e.associated_quadedge.id] = e.associated_quadedge;
+            delete this.quadedges[old_id];
         };
         // Join or split edges, according to whether the two edgerings around the origins of the two edges are the same.
         subdivision.prototype.splice = function (e1, e2) {
@@ -135,7 +140,6 @@ define(["require", "exports", "./quadedge", "./geom"], function (require, export
         // Inserts vertex a into the Delauney triangulation, such that it remains a Delauney triangulation after the insertion as well.
         triangulation.prototype.insert_point = function (a) {
             var e = this.locate(a);
-            console.log("sup");
             // Point already on the edge or on endpoints?
             var tol = 0.01;
             var origin = e.get_origin();
@@ -143,15 +147,12 @@ define(["require", "exports", "./quadedge", "./geom"], function (require, export
             var l1 = Math.sqrt((a.x - origin.x) * (a.x - origin.x) + (a.y - origin.y) * (a.y - origin.y));
             var l2 = Math.sqrt((a.x - dest.x) * (a.x - dest.x) + (a.y - dest.y) * (a.y - dest.y));
             if (l1 < tol || l2 < tol) {
-                console.log("too close!");
                 return;
             }
             else if (geom.on_edge(a, e)) {
-                console.log("on edge!");
                 e = e.origin_prev();
                 this.delete_edge(e.origin_next());
             }
-            console.log("all good!");
             // Connect new point to the other vertices
             var base = this.make_edge();
             base.set_endpoints(e.get_origin(), a);

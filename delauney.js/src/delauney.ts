@@ -57,7 +57,6 @@ class subdivision {
         }
 
         this.quadedges[new_quadedge.id] = new_quadedge;
-
         return new_quadedge.edges[0];
     }
 
@@ -83,6 +82,12 @@ class subdivision {
         this.splice(e.sym(), e2.lface_next());
 
         e.set_endpoints(e1.get_dest(), e2.get_dest());
+
+        // Change id of this edge, because the endpoints have changed, and update records!
+        let old_id = e.associated_quadedge.id;
+        e.associated_quadedge.id = this.get_new_quadedge_id();
+        this.quadedges[e.associated_quadedge.id] = e.associated_quadedge;
+        delete this.quadedges[old_id];
     }
 
     // Join or split edges, according to whether the two edgerings around the origins of the two edges are the same.
@@ -148,9 +153,7 @@ export class triangulation extends subdivision {
     // Inserts vertex a into the Delauney triangulation, such that it remains a Delauney triangulation after the insertion as well.
     insert_point(a: vertex) {
         let e = this.locate(a);
-        
-        console.log("sup");
-        
+                
         // Point already on the edge or on endpoints?
         let tol = 0.01;
         let origin = e.get_origin();
@@ -159,16 +162,12 @@ export class triangulation extends subdivision {
         let l2 = Math.sqrt((a.x - dest.x) * (a.x - dest.x) + (a.y - dest.y) * (a.y - dest.y));
 
         if (l1 < tol || l2 < tol) {
-            console.log("too close!");
             return;
         }
         else if(geom.on_edge(a, e)) {
-            console.log("on edge!");
             e = e.origin_prev();
             this.delete_edge(e.origin_next());
         }
-
-        console.log("all good!");
 
         // Connect new point to the other vertices
         let base = this.make_edge();

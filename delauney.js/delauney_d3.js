@@ -64,6 +64,7 @@ define(["require", "exports", "./d3", "./src/delauney", "./src/quadedge"], funct
     var animation_started = false;
     var insertion_finished = true;
     var vertices = [];
+    var last_ids = {};
     d3.select("body")
         .on('click', function () {
         if (animation_started == false) {
@@ -73,10 +74,12 @@ define(["require", "exports", "./d3", "./src/delauney", "./src/quadedge"], funct
                 d3.select(".heading")
                     .transition()
                     .style("fill-opacity", "0")
+                    .remove()
                     .duration("500");
                 d3.select(".subheading")
                     .transition()
                     .style("fill-opacity", "0")
+                    .remove()
                     .duration("500");
                 d3.selectAll(".description")
                     .transition()
@@ -101,26 +104,46 @@ define(["require", "exports", "./d3", "./src/delauney", "./src/quadedge"], funct
             insertion_finished = false;
             dt.insert_point(new_vertex);
             insertion_finished = true;
-            console.log("insertion finished");
-            // Remove all old lines.
-            d3.selectAll(".edge").remove();
-            // Draw edges with d3.
-            for (var curr_id in dt.quadedges) {
-                var curr_quadedge = dt.quadedges[curr_id];
-                var p1 = curr_quadedge.edges[0].get_origin();
-                var p2 = curr_quadedge.edges[0].get_dest();
-                if ((p1 != phantom1 && p1 != phantom2 && p1 != phantom3) && (p2 != phantom1 && p2 != phantom2 && p2 != phantom3)) {
-                    svg.append("line")
-                        .style("stroke", "black")
-                        .attr("class", "edge")
-                        .attr("x1", p1.x)
-                        .attr("y1", p1.y)
-                        .attr("x2", p2.x)
-                        .attr("y2", p2.y);
-                    // .transition()
-                    //     .attr("x2", p2.x)
-                    //     .attr("y2", p2.y)
-                    //     .duration(2000);
+            console.log("Insertion finished");
+            // // Show quadedge ids now.
+            // console.log("Last ids:");
+            // for (let id in last_ids) {
+            //     console.log(id);
+            // }
+            // console.log("Current ids:");
+            // for (let id in dt.quadedges) {
+            //     console.log(id);
+            // }
+            // Remove old edges, no longer present
+            for (var id in last_ids) {
+                if (!(id in dt.quadedges)) {
+                    d3.select("#" + "edge" + id).remove();
+                    delete last_ids[id];
+                    console.log("removed edge with id", id);
+                }
+            }
+            // Draw the new edges in, with d3.
+            for (var quad_id in dt.quadedges) {
+                if (!(quad_id in last_ids)) {
+                    var curr_quadedge = dt.quadedges[quad_id];
+                    var p1 = curr_quadedge.edges[0].get_origin();
+                    var p2 = curr_quadedge.edges[0].get_dest();
+                    if ((p1 != phantom1 && p1 != phantom2 && p1 != phantom3) && (p2 != phantom1 && p2 != phantom2 && p2 != phantom3)) {
+                        svg.append("line")
+                            .style("stroke", "black")
+                            .attr("class", "edge")
+                            .attr("id", "edge" + quad_id)
+                            .attr("x1", p1.x)
+                            .attr("y1", p1.y)
+                            .attr("x2", p1.x)
+                            .attr("y2", p1.y)
+                            .transition()
+                            .attr("x2", p2.x)
+                            .attr("y2", p2.y)
+                            .duration(2000);
+                        last_ids[quad_id] = true;
+                        console.log("added edge with id", quad_id);
+                    }
                 }
             }
         }
