@@ -63,7 +63,46 @@ export function on_edge(a: vertex, e: edge): boolean {
     else {
         return false;
     }
+}
 
+export function triangle_circumcentre(a: vertex, b: vertex, c: vertex): vertex {
+    let mid1 = new vertex((a.x + b.x) / 2, (a.y + b.y) / 2);
+    let mid2 = new vertex((b.x + c.x) / 2, (b.y + c.y) / 2);
+
+    let m1: number;
+    let m2: number;
+    let cx: number;
+    let cy: number;
+
+    if (a.y == b.y) {
+        cy = mid1.y;
+        if ((b.x != c.x)) {
+            m2 = - (b.x - c.x) / (b.y - c.y);
+            cx = (cy - mid2.y) / m2 + mid2.x;
+        }
+        else {
+            cx = mid2.x;
+        }
+    }
+    else if (b.y == c.y) {
+        cy = mid2.y;
+        if ((a.x != b.x)) {
+            m1 = - (a.x - b.x) / (a.y - b.y);
+            cx = (cy - mid1.y) / m1 + mid1.x;
+        }
+        else {
+            cx = mid1.x;
+        }
+    }
+    else {
+        m1 = - (a.x - b.x) / (a.y - b.y);
+        m2 = - (b.x - c.x) / (b.y - c.y);
+
+        cx = ((m2 * mid2.x - mid2.y) - (m1 * mid1.x - mid1.y)) / (m2 - m1);
+        cy = m1 * (cx - mid1.x) + mid1.y;
+    }
+
+    return new vertex(cx, cy);
 }
 
 

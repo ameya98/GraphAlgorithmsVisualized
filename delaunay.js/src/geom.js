@@ -5,7 +5,7 @@ Author: Ameya Daigavane
 Reference: Incremental Delaunay Triangulation - Dani Lischinski
 (https://dl.acm.org/citation.cfm?id=180900)
 */
-define(["require", "exports"], function (require, exports) {
+define(["require", "exports", "./quadedge"], function (require, exports, quadedge_1) {
     "use strict";
     exports.__esModule = true;
     // Oriented area of triangle with vertices a, b and c.
@@ -61,4 +61,40 @@ define(["require", "exports"], function (require, exports) {
         }
     }
     exports.on_edge = on_edge;
+    function triangle_circumcentre(a, b, c) {
+        var mid1 = new quadedge_1.vertex((a.x + b.x) / 2, (a.y + b.y) / 2);
+        var mid2 = new quadedge_1.vertex((b.x + c.x) / 2, (b.y + c.y) / 2);
+        var m1;
+        var m2;
+        var cx;
+        var cy;
+        if (a.y == b.y) {
+            cy = mid1.y;
+            if ((b.x != c.x)) {
+                m2 = -(b.x - c.x) / (b.y - c.y);
+                cx = (cy - mid2.y) / m2 + mid2.x;
+            }
+            else {
+                cx = mid2.x;
+            }
+        }
+        else if (b.y == c.y) {
+            cy = mid2.y;
+            if ((a.x != b.x)) {
+                m1 = -(a.x - b.x) / (a.y - b.y);
+                cx = (cy - mid1.y) / m1 + mid1.x;
+            }
+            else {
+                cx = mid1.x;
+            }
+        }
+        else {
+            m1 = -(a.x - b.x) / (a.y - b.y);
+            m2 = -(b.x - c.x) / (b.y - c.y);
+            cx = ((m2 * mid2.x - mid2.y) - (m1 * mid1.x - mid1.y)) / (m2 - m1);
+            cy = m1 * (cx - mid1.x) + mid1.y;
+        }
+        return new quadedge_1.vertex(cx, cy);
+    }
+    exports.triangle_circumcentre = triangle_circumcentre;
 });

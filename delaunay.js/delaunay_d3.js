@@ -5,7 +5,7 @@ Author: Ameya Daigavane
 Reference: Incremental Delaunay Triangulation - Dani Lischinski
 (https://dl.acm.org/citation.cfm?id=180900)
 */
-define(["require", "exports", "./d3", "./src/delaunay", "./src/quadedge"], function (require, exports, d3, delaunay, quadedge) {
+define(["require", "exports", "./d3", "./src/delaunay", "./src/quadedge", "./src/geom"], function (require, exports, d3, delaunay, quadedge, geom) {
     "use strict";
     exports.__esModule = true;
     // Dynamic resize for width and height
@@ -161,90 +161,44 @@ define(["require", "exports", "./d3", "./src/delaunay", "./src/quadedge"], funct
                 .remove();
             // Find triangle faces one-by-one.
             console.log(last_ids);
-            if (Object.keys(last_ids).length < 3) {
-                return;
+            var visited = {};
+            for (var quad_id in last_ids) {
+                visited[quad_id] = false;
             }
             for (var quad_id in last_ids) {
-                if (last_ids[quad_id]) {
-                    last_ids[quad_id] = false;
-                    console.log("New edge:", quad_id);
+                if (!visited[quad_id]) {
+                    // Explore left face.
                     var points = [];
                     var init_edge = dt.quadedges[quad_id].edges[0];
                     var curr_edge = init_edge;
                     var start_point = curr_edge.get_origin();
                     var next_point = curr_edge.get_dest();
+                    console.log("Visiting the left face of edge", curr_edge.associated_quadedge.id);
                     points.push(start_point);
+                    // Check if new and non-phantom face.
+                    var invalid_triangle = false;
+                    var all_edges_old = true;
                     while (next_point != start_point) {
-                        while (is_phantom(next_point)) {
-                            curr_edge = curr_edge.origin_next();
-                            next_point = curr_edge.get_dest();
-                        }
-                        if (next_point == start_point) {
+                        console.log(curr_edge.associated_quadedge.id);
+                        if (is_phantom(next_point)) {
+                            console.log("Oops invalid!");
+                            invalid_triangle = true;
                             break;
                         }
-                        console.log("Currently seeing edge:", curr_edge.associated_quadedge.id);
+                        if (last_ids[curr_edge.associated_quadedge.id]) {
+                            all_edges_old = false;
+                        }
                         points.push(next_point);
                         curr_edge = curr_edge.lface_next();
                         next_point = curr_edge.get_dest();
-                        if (curr_edge.associated_quadedge.id in last_ids) {
-                            last_ids[curr_edge.associated_quadedge.id] = false;
-                        }
                     }
-                    if (points.length != 3) {
-                        curr_edge = init_edge;
-                        next_point = curr_edge.get_dest();
-                        while (next_point != start_point) {
-                            curr_edge = curr_edge.dest_next().sym();
-                            next_point = curr_edge.get_dest();
-                            if (curr_edge.associated_quadedge.id in last_ids) {
-                                last_ids[curr_edge.associated_quadedge.id] = true;
-                            }
-                        }
-                        continue;
+                    if ((points.length != 3) || (all_edges_old)) {
+                        invalid_triangle = true;
                     }
-                    var phantom_triangle = false;
-                    for (var i = 0; i < 3; ++i) {
-                        if (points[i] == phantom1 || points[i] == phantom2 || points[i] == phantom3) {
-                            phantom_triangle = true;
-                            break;
-                        }
-                    }
-                    if (!phantom_triangle) {
+                    if (!invalid_triangle) {
                         console.log(points);
-                        var mid1 = new quadedge.vertex((points[0].x + points[1].x) / 2, (points[0].y + points[1].y) / 2);
-                        var mid2 = new quadedge.vertex((points[1].x + points[2].x) / 2, (points[1].y + points[2].y) / 2);
-                        var m1 = void 0;
-                        var m2 = void 0;
-                        var cx = void 0;
-                        var cy = void 0;
-                        if (points[0].y == points[1].y) {
-                            cy = mid1.y;
-                            if ((points[1].x != points[2].x)) {
-                                m2 = -(points[1].x - points[2].x) / (points[1].y - points[2].y);
-                                cx = (cy - mid2.y) / m2 + mid2.x;
-                            }
-                            else {
-                                cx = mid2.x;
-                            }
-                        }
-                        else if (points[1].y == points[2].y) {
-                            cy = mid2.y;
-                            if ((points[0].x != points[1].x)) {
-                                m1 = -(points[0].x - points[1].x) / (points[0].y - points[1].y);
-                                cx = (cy - mid1.y) / m1 + mid1.x;
-                            }
-                            else {
-                                cx = mid1.x;
-                            }
-                        }
-                        else {
-                            m1 = -(points[0].x - points[1].x) / (points[0].y - points[1].y);
-                            m2 = -(points[1].x - points[2].x) / (points[1].y - points[2].y);
-                            cx = ((m2 * mid2.x - mid2.y) - (m1 * mid1.x - mid1.y)) / (m2 - m1);
-                            cy = m1 * (cx - mid1.x) + mid1.y;
-                        }
-                        var circumcentre = new quadedge.vertex(cx, cy);
-                        var circumradius = Math.sqrt((cx - points[0].x) * (cx - points[0].x) + (cy - points[0].y) * (cy - points[0].y));
+                        var circumcentre = geom.triangle_circumcentre(points[0], points[1], points[2]);
+                        var circumradius = Math.sqrt((circumcentre.x - points[0].x) * (circumcentre.x - points[0].x) + (circumcentre.y - points[0].y) * (circumcentre.y - points[0].y));
                         svg.append("circle")
                             .style("stroke-dasharray", ("3, 5"))
                             .style("stroke", "gray")
@@ -255,7 +209,51 @@ define(["require", "exports", "./d3", "./src/delaunay", "./src/quadedge"], funct
                             .attr("r", circumradius);
                         console.log("Drew circumcircle.");
                     }
+                    // Explore right face.
+                    invalid_triangle = false;
+                    all_edges_old = true;
+                    points = [];
+                    curr_edge = init_edge;
+                    next_point = curr_edge.get_dest();
+                    console.log("Visiting the right face of edge", curr_edge.associated_quadedge.id);
+                    points.push(start_point);
+                    // Check if new and non-phantom face.
+                    while (next_point != start_point) {
+                        console.log(curr_edge.associated_quadedge.id);
+                        if (is_phantom(next_point)) {
+                            console.log("Oops invalid!");
+                            invalid_triangle = true;
+                            break;
+                        }
+                        if (last_ids[curr_edge.associated_quadedge.id]) {
+                            all_edges_old = false;
+                        }
+                        points.push(next_point);
+                        curr_edge = curr_edge.rface_prev();
+                        next_point = curr_edge.get_dest();
+                    }
+                    if ((points.length != 3) || all_edges_old) {
+                        invalid_triangle = true;
+                    }
+                    if (!invalid_triangle) {
+                        console.log(points);
+                        var circumcentre = geom.triangle_circumcentre(points[0], points[1], points[2]);
+                        var circumradius = Math.sqrt((circumcentre.x - points[0].x) * (circumcentre.x - points[0].x) + (circumcentre.y - points[0].y) * (circumcentre.y - points[0].y));
+                        svg.append("circle")
+                            .style("stroke-dasharray", ("3, 5"))
+                            .style("stroke", "gray")
+                            .style("fill", "none")
+                            .attr("class", "circumcircle")
+                            .attr("cx", circumcentre.x)
+                            .attr("cy", circumcentre.y)
+                            .attr("r", circumradius);
+                        console.log("Drew circumcircle.");
+                    }
+                    visited[quad_id] = true;
                 }
+            }
+            for (var quad_id in last_ids) {
+                last_ids[quad_id] = false;
             }
         }
     });
