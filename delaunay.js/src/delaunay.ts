@@ -1,5 +1,5 @@
 /*
-The Delauney Triangulation in TypeScript
+The Delaunay Triangulation in TypeScript
 Author: Ameya Daigavane
 
 Reference: Incremental Delaunay Triangulation - Dani Lischinski
@@ -149,7 +149,7 @@ export class triangulation extends subdivision {
         }
     }
 
-    // Inserts vertex a into the Delauney triangulation, such that it remains a Delauney triangulation after the insertion as well.
+    // Inserts vertex a into the Delaunay triangulation, such that it remains a Delaunay triangulation after the insertion as well.
     insert_point(a: vertex) {
         let e = this.locate(a);
                 
@@ -184,7 +184,7 @@ export class triangulation extends subdivision {
             }
         }
 
-        // Ensure that the Delauney condition is not violated by swapping if required.
+        // Ensure that the Delaunay condition is not violated by swapping if required.
         while (true) {
             let prev_edge = e.origin_prev();
             if(geom.right_of(prev_edge.get_dest(), e) && geom.in_circle(a, e.get_origin(), prev_edge.get_dest(), e.get_dest())) {

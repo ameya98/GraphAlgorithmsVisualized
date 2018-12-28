@@ -56,7 +56,7 @@ svg.append("svg:text")
     .attr("y", "48%");
 
 svg.append("svg:text")
-    .text("3. Perform Lawson flips to restore the Delauney Condition, and obtain a triangulation with the new point.")
+    .text("3. Perform Lawson flips to restore the Delaunay Condition, and obtain a triangulation with the new point.")
     .attr("class", "description")
     .attr("x", "22%")
     .attr("y", "51%");
@@ -179,6 +179,93 @@ d3.select("body")
                         last_ids[quad_id] = true;
                         console.log("added edge with id", quad_id);
                     }
+
+                }
+            }
+
+            // Redraw circumcircles!
+            d3.selectAll('.circumcircle')
+                .attr("fill-opacity", 1)
+                .attr("stroke-opacity", 1)
+                .transition()
+                .duration(1000)
+                .attr("fill-opacity", 0)
+                .attr("stroke-opacity", 0)
+                .remove();
+            
+            // Find triangles one-by-one.
+            for(let quad_id in last_ids){
+                if(last_ids[quad_id]){
+                    last_ids[quad_id] = false;
+                    
+                    let points: quadedge.vertex[] = [];
+                    let curr_edge: quadedge.edge = dt.quadedges[quad_id].edges[0];
+                    let start_point: quadedge.vertex = curr_edge.get_origin();
+                    let next_point: quadedge.vertex = curr_edge.get_dest();
+
+                    points.push(start_point);
+
+                    while(next_point != start_point){
+                        points.push(next_point);
+                        curr_edge = curr_edge.lface_next();
+                        next_point = curr_edge.get_dest();
+                        last_ids[curr_edge.associated_quadedge.id] = false;
+                    }
+                    
+                    let phantom_triangle = false;
+                    for (let i = 0; i < 3; ++i) {
+                        if (points[i] == phantom1 || points[i] == phantom2 || points[i] == phantom3) {
+                            phantom_triangle = true;
+                            break;
+                        }
+                    }
+                    
+                    if(!phantom_triangle){
+                        let mid1 = new quadedge.vertex((points[0].x + points[1].x) / 2, (points[0].y + points[1].y) / 2);
+                        let mid2 = new quadedge.vertex((points[1].x + points[2].x) / 2, (points[1].y + points[2].y) / 2);
+
+                        // console.log(mid1, mid2);
+
+                        let m1: number;
+                        let m2: number;
+                        let cx: number;
+                        let cy: number;
+
+                        if (points[0].y == points[1].y) {
+                            cy = mid1.y;
+                            m2 = - (points[1].x - points[2].x) / (points[1].y - points[2].y);
+                            cx = (cy - mid2.y) / m2 + mid2.x;
+                        } 
+                        else if(points[1].y == points[2].y) {
+                            cy = mid2.y;
+                            m1 = - (points[0].x - points[1].x) / (points[0].y - points[1].y);
+                            cx = (cy - mid1.y) / m1 + mid1.x;
+                        }
+                        else {
+                            m1 = - (points[0].x - points[1].x) / (points[0].y - points[1].y);
+                            m2 = - (points[1].x - points[2].x) / (points[1].y - points[2].y);
+
+                            cx = ((m2 * mid2.x - mid2.y) - (m1 * mid1.x - mid1.y)) / (m2 - m1);
+                            cy = m1 * (cx - mid1.x) + mid1.y;
+                        }
+
+                        // console.log(cx, cy);
+
+                        let circumcentre = new quadedge.vertex(cx, cy);
+                        let circumradius = Math.sqrt((cx - points[0].x) * (cx - points[0].x) + (cy - points[0].y) * (cy - points[0].y));
+                        
+                        svg.append("circle")
+                            .style("stroke-dasharray", ("3, 5")) 
+                            .style("stroke", "gray")    
+                            .style("fill", "none")
+                            .attr("class", "circumcircle")
+                            .attr("cx", circumcentre.x)
+                            .attr("cy", circumcentre.y)
+                            .attr("r", circumradius);
+                    }
+
+                }
+                else {
 
                 }
             }

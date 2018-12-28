@@ -1,5 +1,5 @@
 /*
-The Delauney Triangulation in TypeScript
+The Delaunay Triangulation in TypeScript
 Author: Ameya Daigavane
 
 Reference: Incremental Delaunay Triangulation - Dani Lischinski
@@ -137,7 +137,7 @@ define(["require", "exports", "./quadedge", "./geom"], function (require, export
                 }
             }
         };
-        // Inserts vertex a into the Delauney triangulation, such that it remains a Delauney triangulation after the insertion as well.
+        // Inserts vertex a into the Delaunay triangulation, such that it remains a Delaunay triangulation after the insertion as well.
         triangulation.prototype.insert_point = function (a) {
             var e = this.locate(a);
             // Point already on the edge or on endpoints?
@@ -165,7 +165,7 @@ define(["require", "exports", "./quadedge", "./geom"], function (require, export
                     break;
                 }
             }
-            // Ensure that the Delauney condition is not violated by swapping if required.
+            // Ensure that the Delaunay condition is not violated by swapping if required.
             while (true) {
                 var prev_edge = e.origin_prev();
                 if (geom.right_of(prev_edge.get_dest(), e) && geom.in_circle(a, e.get_origin(), prev_edge.get_dest(), e.get_dest())) {
