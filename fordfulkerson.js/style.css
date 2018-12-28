@@ -22,9 +22,16 @@ html, body {
     fill: gray;
 }
 
-.distance {
+.flow {
     font-family: 'IBM Plex Sans Condensed', sans-serif;
     font-size: 12px;
+    fill: gray;
+}
+
+.capacity {
+    font-family: 'IBM Plex Sans Condensed', sans-serif;
+    font-size: 12px;
+    fill: black;
 }
 
 #pausebutton {
