@@ -63,6 +63,9 @@ define(["require", "exports", "./d3", "./src/delaunay", "./src/quadedge"], funct
     var phantom1 = new quadedge.vertex(100 * (width + height), 0);
     var phantom2 = new quadedge.vertex(0, 100 * (width + height));
     var phantom3 = new quadedge.vertex(-100 * (width + height), -100 * (width + height));
+    function is_phantom(a) {
+        return (a == phantom1 || a == phantom2 || a == phantom3);
+    }
     var dt = new delaunay.triangulation(phantom1, phantom2, phantom3);
     var animation_started = false;
     var insertion_finished = true;
@@ -129,7 +132,7 @@ define(["require", "exports", "./d3", "./src/delaunay", "./src/quadedge"], funct
                     var curr_quadedge = dt.quadedges[quad_id];
                     var p1 = curr_quadedge.edges[0].get_origin();
                     var p2 = curr_quadedge.edges[0].get_dest();
-                    if ((p1 != phantom1 && p1 != phantom2 && p1 != phantom3) && (p2 != phantom1 && p2 != phantom2 && p2 != phantom3)) {
+                    if (!is_phantom(p1) && !is_phantom(p2)) {
                         svg.append("line")
                             .style("stroke", "gray")
                             .attr("class", "edge")
@@ -156,20 +159,48 @@ define(["require", "exports", "./d3", "./src/delaunay", "./src/quadedge"], funct
                 .attr("fill-opacity", 0)
                 .attr("stroke-opacity", 0)
                 .remove();
-            // Find triangles one-by-one.
+            // Find triangle faces one-by-one.
+            console.log(last_ids);
+            if (Object.keys(last_ids).length < 3) {
+                return;
+            }
             for (var quad_id in last_ids) {
                 if (last_ids[quad_id]) {
                     last_ids[quad_id] = false;
+                    console.log("New edge:", quad_id);
                     var points = [];
-                    var curr_edge = dt.quadedges[quad_id].edges[0];
+                    var init_edge = dt.quadedges[quad_id].edges[0];
+                    var curr_edge = init_edge;
                     var start_point = curr_edge.get_origin();
                     var next_point = curr_edge.get_dest();
                     points.push(start_point);
                     while (next_point != start_point) {
+                        while (is_phantom(next_point)) {
+                            curr_edge = curr_edge.origin_next();
+                            next_point = curr_edge.get_dest();
+                        }
+                        if (next_point == start_point) {
+                            break;
+                        }
+                        console.log("Currently seeing edge:", curr_edge.associated_quadedge.id);
                         points.push(next_point);
                         curr_edge = curr_edge.lface_next();
                         next_point = curr_edge.get_dest();
-                        last_ids[curr_edge.associated_quadedge.id] = false;
+                        if (curr_edge.associated_quadedge.id in last_ids) {
+                            last_ids[curr_edge.associated_quadedge.id] = false;
+                        }
+                    }
+                    if (points.length != 3) {
+                        curr_edge = init_edge;
+                        next_point = curr_edge.get_dest();
+                        while (next_point != start_point) {
+                            curr_edge = curr_edge.dest_next().sym();
+                            next_point = curr_edge.get_dest();
+                            if (curr_edge.associated_quadedge.id in last_ids) {
+                                last_ids[curr_edge.associated_quadedge.id] = true;
+                            }
+                        }
+                        continue;
                     }
                     var phantom_triangle = false;
                     for (var i = 0; i < 3; ++i) {
@@ -179,22 +210,32 @@ define(["require", "exports", "./d3", "./src/delaunay", "./src/quadedge"], funct
                         }
                     }
                     if (!phantom_triangle) {
+                        console.log(points);
                         var mid1 = new quadedge.vertex((points[0].x + points[1].x) / 2, (points[0].y + points[1].y) / 2);
                         var mid2 = new quadedge.vertex((points[1].x + points[2].x) / 2, (points[1].y + points[2].y) / 2);
-                        // console.log(mid1, mid2);
                         var m1 = void 0;
                         var m2 = void 0;
                         var cx = void 0;
                         var cy = void 0;
                         if (points[0].y == points[1].y) {
                             cy = mid1.y;
-                            m2 = -(points[1].x - points[2].x) / (points[1].y - points[2].y);
-                            cx = (cy - mid2.y) / m2 + mid2.x;
+                            if ((points[1].x != points[2].x)) {
+                                m2 = -(points[1].x - points[2].x) / (points[1].y - points[2].y);
+                                cx = (cy - mid2.y) / m2 + mid2.x;
+                            }
+                            else {
+                                cx = mid2.x;
+                            }
                         }
                         else if (points[1].y == points[2].y) {
                             cy = mid2.y;
-                            m1 = -(points[0].x - points[1].x) / (points[0].y - points[1].y);
-                            cx = (cy - mid1.y) / m1 + mid1.x;
+                            if ((points[0].x != points[1].x)) {
+                                m1 = -(points[0].x - points[1].x) / (points[0].y - points[1].y);
+                                cx = (cy - mid1.y) / m1 + mid1.x;
+                            }
+                            else {
+                                cx = mid1.x;
+                            }
                         }
                         else {
                             m1 = -(points[0].x - points[1].x) / (points[0].y - points[1].y);
@@ -202,7 +243,6 @@ define(["require", "exports", "./d3", "./src/delaunay", "./src/quadedge"], funct
                             cx = ((m2 * mid2.x - mid2.y) - (m1 * mid1.x - mid1.y)) / (m2 - m1);
                             cy = m1 * (cx - mid1.x) + mid1.y;
                         }
-                        // console.log(cx, cy);
                         var circumcentre = new quadedge.vertex(cx, cy);
                         var circumradius = Math.sqrt((cx - points[0].x) * (cx - points[0].x) + (cy - points[0].y) * (cy - points[0].y));
                         svg.append("circle")
@@ -213,9 +253,8 @@ define(["require", "exports", "./d3", "./src/delaunay", "./src/quadedge"], funct
                             .attr("cx", circumcentre.x)
                             .attr("cy", circumcentre.y)
                             .attr("r", circumradius);
+                        console.log("Drew circumcircle.");
                     }
-                }
-                else {
                 }
             }
         }
