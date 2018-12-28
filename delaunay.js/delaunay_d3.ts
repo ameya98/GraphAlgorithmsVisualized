@@ -209,7 +209,10 @@ d3.select("body")
             for (let quad_id in last_ids){
                 if(!visited[quad_id]){
 
+<<<<<<< HEAD
                     
+=======
+>>>>>>> 00525ce1d8bc084a481a9afa262bd3387be97c96
                     // Explore left face.
                     let points: quadedge.vertex[] = [];
                     let init_edge: quadedge.edge = dt.quadedges[quad_id].edges[0];
@@ -217,8 +220,11 @@ d3.select("body")
                     let start_point: quadedge.vertex = curr_edge.get_origin();
                     let next_point: quadedge.vertex = curr_edge.get_dest();
                     
+<<<<<<< HEAD
                     console.log("Visiting the left face of edge", curr_edge.associated_quadedge.id);
 
+=======
+>>>>>>> 00525ce1d8bc084a481a9afa262bd3387be97c96
                     points.push(start_point);
 
                     // Check if new and non-phantom face.
@@ -246,12 +252,23 @@ d3.select("body")
                     if ((points.length != 3) || (all_edges_old)) {
                         invalid_triangle = true;
                     }
+<<<<<<< HEAD
                     
                     if(!invalid_triangle){
                         console.log(points);
                         let circumcentre = geom.triangle_circumcentre(points[0], points[1], points[2]);
                         let circumradius = Math.sqrt((circumcentre.x - points[0].x) * (circumcentre.x - points[0].x) + (circumcentre.y - points[0].y) * (circumcentre.y - points[0].y));
 
+=======
+
+                    console.log();
+                    
+                    if(!invalid_triangle){
+                        console.log(points);
+                        let circumcentre = geom.triangle_circumcentre(points[0], points[1], points[2]);
+                        let circumradius = Math.sqrt((circumcentre.x - points[0].x) * (circumcentre.x - points[0].x) + (circumcentre.y - points[0].y) * (circumcentre.y - points[0].y));
+
+>>>>>>> 00525ce1d8bc084a481a9afa262bd3387be97c96
                         svg.append("circle")
                             .style("stroke-dasharray", ("3, 5"))
                             .style("stroke", "gray")
@@ -297,6 +314,12 @@ d3.select("body")
                     if((points.length != 3) || all_edges_old) {
                         invalid_triangle = true;
                     }
+
+                    if((points.length != 3) || all_edges_old) {
+                        invalid_triangle = true;
+                    }
+
+                    console.log();
                     
                     if (!invalid_triangle) {
                         console.log(points);
