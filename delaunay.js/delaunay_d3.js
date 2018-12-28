@@ -195,10 +195,6 @@ define(["require", "exports", "./d3", "./src/delaunay", "./src/quadedge", "./src
                     if ((points.length != 3) || (all_edges_old)) {
                         invalid_triangle = true;
                     }
-<<<<<<< HEAD
-=======
-                    console.log();
->>>>>>> 00525ce1d8bc084a481a9afa262bd3387be97c96
                     if (!invalid_triangle) {
                         console.log(points);
                         var circumcentre = geom.triangle_circumcentre(points[0], points[1], points[2]);
@@ -219,17 +215,11 @@ define(["require", "exports", "./d3", "./src/delaunay", "./src/quadedge", "./src
                     points = [];
                     curr_edge = init_edge;
                     next_point = curr_edge.get_dest();
-<<<<<<< HEAD
                     console.log("Visiting the right face of edge", curr_edge.associated_quadedge.id);
                     points.push(start_point);
                     // Check if new and non-phantom face.
                     while (next_point != start_point) {
                         console.log(curr_edge.associated_quadedge.id);
-=======
-                    points.push(start_point);
-                    // Check if new and non-phantom face.
-                    while (next_point != start_point) {
->>>>>>> 00525ce1d8bc084a481a9afa262bd3387be97c96
                         if (is_phantom(next_point)) {
                             console.log("Oops invalid!");
                             invalid_triangle = true;
@@ -239,20 +229,16 @@ define(["require", "exports", "./d3", "./src/delaunay", "./src/quadedge", "./src
                             all_edges_old = false;
                         }
                         points.push(next_point);
-<<<<<<< HEAD
                         curr_edge = curr_edge.rface_prev();
-=======
-                        curr_edge = curr_edge.rface_next();
->>>>>>> 00525ce1d8bc084a481a9afa262bd3387be97c96
                         next_point = curr_edge.get_dest();
                     }
                     if ((points.length != 3) || all_edges_old) {
                         invalid_triangle = true;
                     }
-<<<<<<< HEAD
-=======
+                    if ((points.length != 3) || all_edges_old) {
+                        invalid_triangle = true;
+                    }
                     console.log();
->>>>>>> 00525ce1d8bc084a481a9afa262bd3387be97c96
                     if (!invalid_triangle) {
                         console.log(points);
                         var circumcentre = geom.triangle_circumcentre(points[0], points[1], points[2]);
