@@ -59,11 +59,11 @@ define(["require", "exports"], function (require, exports) {
         };
         // Next edge around the right face, after this edge.
         edge.prototype.rface_next = function () {
-            return this.rot().origin_next().inv_rot();
+            return this.sym().origin_next();
         };
         // Previous edge around the right face, before this edge.
         edge.prototype.rface_prev = function () {
-            return this.sym().origin_next();
+            return this.rot().origin_next().inv_rot();
         };
         // Origin of this edge.
         edge.prototype.get_origin = function () {

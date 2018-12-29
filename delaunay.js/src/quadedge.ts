@@ -74,12 +74,13 @@ export class edge {
 
     // Next edge around the right face, after this edge.
     rface_next(): edge {
-        return this.rot().origin_next().inv_rot();
+        return this.sym().origin_next();
     }
+    
 
     // Previous edge around the right face, before this edge.
     rface_prev(): edge {
-        return this.sym().origin_next();
+        return this.rot().origin_next().inv_rot();
     }
 
     // Origin of this edge.

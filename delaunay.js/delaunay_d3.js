@@ -180,7 +180,7 @@ define(["require", "exports", "./d3", "./src/delaunay", "./src/quadedge", "./src
                     var all_edges_old = true;
                     while (next_point != start_point) {
                         console.log(curr_edge.associated_quadedge.id);
-                        if (is_phantom(next_point)) {
+                        if (is_phantom(next_point) || visited[curr_edge.associated_quadedge.id]) {
                             console.log("Oops invalid!");
                             invalid_triangle = true;
                             break;
@@ -195,6 +195,7 @@ define(["require", "exports", "./d3", "./src/delaunay", "./src/quadedge", "./src
                     if ((points.length != 3) || (all_edges_old)) {
                         invalid_triangle = true;
                     }
+                    // Draw if not invalid.
                     if (!invalid_triangle) {
                         console.log(points);
                         var circumcentre = geom.triangle_circumcentre(points[0], points[1], points[2]);
@@ -220,7 +221,7 @@ define(["require", "exports", "./d3", "./src/delaunay", "./src/quadedge", "./src
                     // Check if new and non-phantom face.
                     while (next_point != start_point) {
                         console.log(curr_edge.associated_quadedge.id);
-                        if (is_phantom(next_point)) {
+                        if (is_phantom(next_point) || visited[curr_edge.associated_quadedge.id]) {
                             console.log("Oops invalid!");
                             invalid_triangle = true;
                             break;
@@ -229,16 +230,13 @@ define(["require", "exports", "./d3", "./src/delaunay", "./src/quadedge", "./src
                             all_edges_old = false;
                         }
                         points.push(next_point);
-                        curr_edge = curr_edge.rface_prev();
+                        curr_edge = curr_edge.rface_next();
                         next_point = curr_edge.get_dest();
                     }
                     if ((points.length != 3) || all_edges_old) {
                         invalid_triangle = true;
                     }
-                    if ((points.length != 3) || all_edges_old) {
-                        invalid_triangle = true;
-                    }
-                    console.log();
+                    // Draw if not invalid.
                     if (!invalid_triangle) {
                         console.log(points);
                         var circumcentre = geom.triangle_circumcentre(points[0], points[1], points[2]);
